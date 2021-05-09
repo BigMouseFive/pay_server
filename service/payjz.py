@@ -4,15 +4,16 @@ from urllib.parse import urlencode,unquote
 '''
 扫码支付（主扫）
 '''
-key = ' '                  # 填写通信密钥
-mchid = ' '                # 特写商户号
-notify_url = 'http://47.106.130.114/pay_server/payjz'
+key = '1603416270'                  # 填写通信密钥
+mchid = 'tPC9ZEBdwVTRc8Fw'          # 特写商户号
+notify_url = ''  # 'http://47.106.130.114/pay_server/payjz'
 
 
 def get_qr_code(order):
+    order['notify_url'] = notify_url
     order['mchid'] = mchid
     order['sign'] = sign(order)
-    request_url = "https://payjs.cn/api/native"
+    request_url = "https://payjz.cn/api/native"
     headers = {'content-type': 'application/x-www-form-urlencoded'}
     response = requests.post(request_url, data=order, headers=headers)
     if response:

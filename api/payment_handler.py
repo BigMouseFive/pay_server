@@ -1,3 +1,4 @@
+import time
 import uuid
 
 import tornado.web
@@ -20,7 +21,7 @@ class PaymentHandler(tornado.web.RequestHandler):
 
     def post(self):
         if "time" not in self.args or "shop_num" not in self.args or "mac" not in self.args or "price" not in self.args:
-            self.send_error(400)
+            self.write({"code": 400, "msg": "request data error"})
             return
         order = {
             'body': 'test',  # 订单标题
@@ -33,7 +34,10 @@ class PaymentHandler(tornado.web.RequestHandler):
             self.args["payjs_order_id"] = ret["payjs_order_id"]
             self.args["qrcode"] = ret["qrcode"]
             self.args["code_url"] = ret["code_url"]
+            self.args["date"] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
             redis_helper.hash_hset("payment", self.args["mac"], "")
+            ret["code"] = 200
+            ret["msg"] = "success"
             self.write(ret)
         else:
-            self.send_error(400)
+            self.write({"code": 400, "msg": "request qr code failed"})

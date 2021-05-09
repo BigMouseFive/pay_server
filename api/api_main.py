@@ -13,7 +13,6 @@ if __name__ == "__main__":
         (r"/pay_server/update", UpdateHandler),
         (r"/pay_server/auth", AuthHandler),
         (r"/pay_server/payjz", PayjzHandler),
-
     ])
-    application.listen(80)
+    application.listen(8080)
     tornado.ioloop.IOLoop.current().start()

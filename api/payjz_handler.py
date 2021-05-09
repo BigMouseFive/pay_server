@@ -24,20 +24,32 @@ class PayjzHandler(tornado.web.RequestHandler):
             if content_type == 'application/x-json' or content_type == 'application/json':
                 self.args = json.loads(self.request.body)
 
+    # after client pay by qr code, check for pay operation response
+    def get(self):
+        out_trade_no = self.get_argument("out_trade_no", "")
+        if out_trade_no == "":
+            self.write({"code": 400, "msg": "there no out_trade_no in argument"})
+            return
+        value = redis_helper.hash_hget("payjs_order", out_trade_no)
+        if value is None:
+            self.write({"code": 400, "msg": "please wait"})
+            return
+        self.write({"code": 200, "msg": "success"})
+
+    # payjz result notify
     def post(self):
-        self.args = {}
         if self.args["return_code"] == 1:
             # 1. 验签逻辑
             sign_code = self.args.pop("sign")
             if sign_code != payjz.sign(self.args):
-                self.send_error(400)
+                self.write("sign failed")
                 return
             # 2. 验重逻辑
             if redis_helper.hash_hget("payjs_order", self.args["out_trade_no"]):
-                self.write("success")
+                self.write("duplicate recieve")
             # 3. 自身业务逻辑
             redis_helper.hash_hset("payjs_order", self.args["out_trade_no"], self.args, "json")
             # 4. 返回success字符串（http状态码为200）
             self.write("success")
         else:
-            self.send_error(400)
+            self.write("return_code is not 1")
